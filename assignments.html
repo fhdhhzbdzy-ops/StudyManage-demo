@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Xem bài tập - Study Manage</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<header>
+
+    <h1>📖 Bài tập của tôi</h1>
+
+    <p>Danh sách các nhiệm vụ học tập</p>
+
+</header>
+
+
+<main class="dashboard">
+
+    {% if tasks %}
+
+        {% for task in tasks %}
+
+        <section class="card">
+
+            {% if task["completed"] %}
+
+                <h2>
+                    <s>{{ task["name"] }}</s>
+                </h2>
+
+                <p>☑️ Đã hoàn thành</p>
+
+            {% else %}
+
+                <h2>
+                    {{ task["name"] }}
+                </h2>
+
+                <p>⏳ Chưa hoàn thành</p>
+
+            {% endif %}
+
+
+            <p>
+                📖 Môn học:
+                <strong>{{ task["subject"] }}</strong>
+            </p>
+
+
+            <p>
+                📅 Hạn:
+                <strong>{{ task["due_date"] }}</strong>
+            </p>
+
+        </section>
+
+        {% endfor %}
+
+    {% else %}
+
+        <section class="card">
+
+            <h2>📭 Chưa có bài tập</h2>
+
+            <p>Bạn chưa thêm nhiệm vụ học tập nào.</p>
+
+        </section>
+
+    {% endif %}
+
+
+    <div class="menu">
+
+        <a href="/" class="button">
+            ← Quay lại trang chính
+        </a>
+
+    </div>
+
+</main>
+
+
+</body>
+
+</html>

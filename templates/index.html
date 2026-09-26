@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Manager</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- MÀN HÌNH CHÀO -->
+    <section id="welcomeScreen" class="welcome-screen">
+
+        <div class="welcome-card">
+
+            <div class="logo-circle">
+                <img src="{{ url_for('static', filename='logo.png') }}"
+                     alt="Study Manager">
+            </div>
+
+            <h1>Study Manager</h1>
+
+            <p>Quản lý việc học đơn giản và hiệu quả</p>
+
+            <button onclick="startApp()">
+                Bắt đầu sử dụng
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- GIAO DIỆN CHÍNH -->
+    <main id="mainApp" class="main-app">
+
+        <header>
+            <h1>📚 Study Manager</h1>
+            <p>Trợ lý quản lý nhiệm vụ học tập</p>
+        </header>
+
+
+        <section class="dashboard">
+
+            <!-- GIỚI THIỆU -->
+            <div class="card welcome-card-main">
+                <h2>👋 Chào mừng!</h2>
+
+                <p>
+                    Study Manager giúp học sinh quản lý nhiệm vụ,
+                    theo dõi tiến độ và phân bổ thời gian học tập
+                    hiệu quả hơn.
+                </p>
+
+                <button onclick="showGuide()">
+                    📖 Hướng dẫn sử dụng
+                </button>
+
+                <div id="guide" class="guide" style="display:none;">
+                    <p><b>1.</b> Thêm nhiệm vụ học tập.</p>
+                    <p><b>2.</b> Chọn môn học và thời hạn.</p>
+                    <p><b>3.</b> Đánh dấu nhiệm vụ đã hoàn thành.</p>
+                    <p><b>4.</b> Sử dụng Pomodoro để tập trung học.</p>
+                </div>
+            </div>
+
+
+            <!-- THÊM NHIỆM VỤ -->
+            <div class="card">
+                <h2>➕ Thêm nhiệm vụ</h2>
+
+                <form action="/add_task" method="POST">
+
+                    <label for="task">Tên nhiệm vụ</label>
+
+                    <input
+                        type="text"
+                        id="task"
+                        name="task"
+                        placeholder="Ví dụ: Học bài Vật lý"
+                        required
+                    >
+
+
+                    <label for="subject">Môn học</label>
+
+                    <input
+                        type="text"
+                        id="subject"
+                        name="subject"
+                        placeholder="Ví dụ: Vật lý"
+                    >
+
+
+                    <label for="due_date">Ngày hoàn thành</label>
+
+                    <input
+                        type="date"
+                        id="due_date"
+                        name="due_date"
+                        >
+
+
+                    <button type="submit">
+                        Thêm nhiệm vụ
+                    </button>
+
+                </form>
+            </div>
+
+
+            <!-- DANH SÁCH NHIỆM VỤ -->
+            <div class="card">
+                <h2>📝 Nhiệm vụ học tập</h2>
+
+                {% if tasks %}
+
+                    <div class="task-list">
+
+                        {% for task in tasks %}
+
+                            <div class="task-item
+                                {% if task.completed %}completed{% endif %}">
+
+                                <div class="task-info">
+
+                                    <h3>
+                                        {{ task.name }}
+                                    </h3>
+
+                                    <p>
+                                        📚 Môn:
+                                        {{ task.subject or "Chưa nhập" }}
+                                    </p>
+
+                                    <p>
+                                        📅 Hạn:
+                                        {{ task.due_date or "Chưa nhập" }}
+                                    </p>
+
+                                    {% if task.completed %}
+                                        <span class="status completed-status">
+                                            ✓ Đã hoàn thành
+                                        </span>
+                                    {% else %}
+                                        <span class="status">
+                                            ⏳ Chưa hoàn thành
+                                        </span>
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="task-actions">
+
+                                    <a href="/complete_task/{{ loop.index0 }}">
+                                        {% if task.completed %}
+                                            ↩ Bỏ hoàn thành
+                                        {% else %}
+                                            ✓ Hoàn thành
+                                        {% endif %}
+                                    </a>
+
+                                    <a
+                                        href="/delete_task/{{ loop.index0 }}"
+                                        onclick="return confirm('Bạn có chắc muốn xóa nhiệm vụ này?');"
+                                    >
+                                        🗑 Xóa
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p class="empty">
+                        Chưa có nhiệm vụ nào.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- THỐNG KÊ -->
+            <div class="card">
+                <h2>📊 Thống kê</h2>
+
+                <div class="statistics">
+
+                    <div>
+                        <strong id="totalTasks">0</strong>
+                        <span>Tổng nhiệm vụ</span>
+                    </div>
+
+                    <div>
+                        <strong id="completedTasks">0</strong>
+                        <span>Đã hoàn thành</span>
+                    </div>
+
+                    <div>
+                        <strong id="incompleteTasks">0</strong>
+                        <span>Chưa hoàn thành</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- NHẮC NHỞ -->
+            <div class="card">
+
+                <h2>🔔 Nhắc nhở</h2>
+
+                <div class="reminder-form">
+
+                    <input
+                        type="text"
+                        id="reminderInput"
+                        placeholder="Nhập nội dung nhắc nhở..."
+                    >
+
+                    <button onclick="addReminder()">
+                        Thêm
+                    </button>
+
+                </div>
+
+                <div id="reminderList"></div>
+
+            </div>
+
+
+            <!-- POMODORO -->
+            <div class="card">
+
+                <h2>⏱ Pomodoro</h2>
+
+                <p>
+                    Tập trung học trong khoảng thời gian bạn chọn.
+                </p>
+
+                <div class="pomodoro">
+
+                    <input
+                        type="number"
+                        id="minutesInput"
+                        min="1"
+                        max="180"
+                        value="25"
+                        placeholder="Số phút"
+                    >
+
+                    <button onclick="setTime()">
+                        Đặt thời gian
+                    </button>
+
+
+                    <div id="timer">
+                        25:00
+                    </div>
+
+
+                    <div class="timer-buttons">
+
+                        <button onclick="startTimer()">
+                            ▶ Bắt đầu
+                        </button>
+
+                        <button onclick="pauseTimer()">
+                            ⏸ Tạm dừng
+                        </button>
+
+                        <button onclick="resetTimer()">
+                            🔄 Đặt lại
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+            <p>Study Manager — Hỗ trợ học sinh quản lý việc học</p>
+        </footer>
+
+    </main>
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
