@@ -1,306 +1,719 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Manager</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+```
+<title>StudyManager - Quản lý học tập</title>
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}?v=3">
+```
+
 </head>
 
 <body>
 
-    <!-- MÀN HÌNH CHÀO -->
-    <section id="welcomeScreen" class="welcome-screen">
+<header class="top-header">
 
-        <div class="welcome-card">
+```
+<div class="brand">
+    <span class="brand-icon">📚</span>
+    <span>StudyManager</span>
+</div>
 
-            <div class="logo-circle">
-                <img src="{{ url_for('static', filename='logo.png') }}"
-                     alt="Study Manager">
+<nav class="main-nav">
+    <a href="{{ url_for('home') }}" class="active">Trang chủ</a>
+    <a href="{{ url_for('assignments') }}">Bài tập</a>
+    <a href="#statistics">Thống kê</a>
+    <a href="#pomodoro">Pomodoro</a>
+</nav>
+
+<button type="button"
+        id="guideButton"
+        class="guide-button">
+    📖 Hướng dẫn sử dụng
+</button>
+```
+
+</header>
+
+<section class="hero">
+
+```
+<div class="container">
+
+    <div class="hero-content">
+
+        <span class="hero-badge">
+            📚 STUDYMANAGER
+        </span>
+
+        <h1>
+            Học tập
+            <span>chủ động hơn</span>
+        </h1>
+
+        <p>
+            Quản lý bài tập, theo dõi tiến độ và
+            phân bổ thời gian học tập một cách hợp lý.
+        </p>
+
+        <div class="hero-buttons">
+
+            <a href="#add-task"
+               class="primary-button">
+                + Thêm bài tập
+            </a>
+
+            <a href="{{ url_for('assignments') }}"
+               class="secondary-button">
+                📋 Xem bài tập
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+```
+
+</section>
+
+<main class="container">
+
+```
+<!-- THỐNG KÊ -->
+
+<section class="stats-grid" id="statistics">
+
+    <div class="stat-card">
+
+        <div class="stat-icon">📝</div>
+
+        <div>
+            <p>Tổng nhiệm vụ</p>
+            <strong id="totalTasks">
+                {{ stats.total }}
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">⏳</div>
+
+        <div>
+            <p>Chưa hoàn thành</p>
+            <strong id="unfinishedTasks">
+                {{ stats.unfinished }}
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">✅</div>
+
+        <div>
+            <p>Đã hoàn thành</p>
+            <strong id="completedTasks">
+                {{ stats.completed }}
+            </strong>
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">📈</div>
+
+        <div>
+            <p>Tiến độ</p>
+            <strong id="progressPercent">
+                {{ stats.percent }}%
+            </strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- THÊM BÀI TẬP -->
+
+<section class="panel" id="add-task">
+
+    <div class="section-heading">
+
+        <div>
+            <span class="section-label">
+                QUẢN LÝ NHIỆM VỤ
+            </span>
+
+            <h2>
+                ➕ Thêm bài tập mới
+            </h2>
+        </div>
+
+    </div>
+
+
+    <form action="{{ url_for('add_task') }}"
+          method="POST"
+          class="task-form">
+
+        <div class="form-group">
+
+            <label for="name">
+                Tên bài tập
+            </label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Ví dụ: Học thuộc công thức Vật lý"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="subject">
+                Môn học
+            </label>
+
+            <input
+                type="text"
+                id="subject"
+                name="subject"
+                placeholder="Ví dụ: Vật lý"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="deadline">
+                Hạn hoàn thành
+            </label>
+
+            <input
+                type="date"
+                id="deadline"
+                name="deadline"
+                required
+            >
+
+        </div>
+
+
+        <button type="submit"
+                class="primary-button">
+            + Thêm nhiệm vụ
+        </button>
+
+    </form>
+
+</section>
+
+
+<!-- DANH SÁCH BÀI TẬP -->
+
+<section class="panel">
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-label">
+                NHIỆM VỤ
+            </span>
+
+            <h2>
+                📋 Bài tập của bạn
+            </h2>
+
+        </div>
+
+        <a href="{{ url_for('assignments') }}"
+           class="text-link">
+            Xem tất cả →
+        </a>
+
+    </div>
+
+
+    {% if tasks %}
+
+    <div class="task-list">
+
+        {% for task in tasks %}
+
+        <div class="task-card
+                    {% if task.completed %}completed{% endif %}">
+
+            <div class="task-info">
+
+                <h3>
+                    {{ task.name }}
+                </h3>
+
+                <p>
+                    📚 Môn: {{ task.subject }}
+                </p>
+
+                <p>
+                    📅 Hạn:
+                    {{ task.deadline if task.deadline else "Chưa đặt" }}
+                </p>
+
+                <p>
+                    {% if task.completed %}
+                        ✅ Đã hoàn thành
+                    {% else %}
+                        ⏳ Chưa hoàn thành
+                    {% endif %}
+                </p>
+
             </div>
 
-            <h1>Study Manager</h1>
 
-            <p>Quản lý việc học đơn giản và hiệu quả</p>
+            <div class="task-actions">
 
-            <button onclick="startApp()">
-                Bắt đầu sử dụng
+                {% if task.completed %}
+
+                <a class="btn warning"
+                   href="{{ url_for('uncomplete_task', task_id=loop.index0) }}">
+                    ↩ Bỏ hoàn thành
+                </a>
+
+                {% else %}
+
+                <a class="btn success"
+                   href="{{ url_for('complete_task', task_id=loop.index0) }}">
+                    ✓ Hoàn thành
+                </a>
+
+                {% endif %}
+
+
+                <a class="btn secondary"
+                   href="{{ url_for('edit_task', task_id=loop.index0) }}">
+                    ✏ Sửa
+                </a>
+
+
+                <a class="btn danger"
+                   href="{{ url_for('delete_task', task_id=loop.index0) }}"
+                   onclick="return confirm('Bạn có chắc muốn xóa nhiệm vụ này không?');">
+                    🗑 Xóa
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="empty">
+
+        <div class="empty-icon">
+            📚
+        </div>
+
+        <p>
+            Chưa có bài tập nào.
+            Hãy thêm nhiệm vụ đầu tiên của bạn!
+        </p>
+
+    </div>
+
+    {% endif %}
+
+</section>
+
+
+<!-- TIẾN ĐỘ -->
+
+<section class="panel">
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-label">
+                TIẾN ĐỘ
+            </span>
+
+            <h2>
+                📈 Tiến độ học tập
+            </h2>
+
+        </div>
+
+        <strong class="progress-number">
+            {{ stats.percent }}%
+        </strong>
+
+    </div>
+
+
+    <div class="progress-box">
+
+        <div class="progress-bar">
+
+            <div
+                id="progressFill"
+                class="progress-fill"
+                style="width: {{ stats.percent }}%;">
+            </div>
+
+        </div>
+
+
+        <p class="progress-text">
+
+            Bạn đã hoàn thành
+            <strong>{{ stats.completed }}</strong>
+            trên tổng số
+            <strong>{{ stats.total }}</strong>
+            nhiệm vụ.
+
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- POMODORO -->
+
+<section class="panel pomodoro"
+         id="pomodoro">
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-label">
+                TẬP TRUNG
+            </span>
+
+            <h2>
+                🍅 Pomodoro
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <div class="pomodoro-box">
+
+        <p class="pomodoro-description">
+            Chọn thời gian học tập và bắt đầu phiên tập trung.
+        </p>
+
+
+        <div class="pomodoro-setting">
+
+            <label for="minutesInput">
+                Thời gian:
+            </label>
+
+            <input
+                type="number"
+                id="minutesInput"
+                value="25"
+                min="1"
+                max="180"
+            >
+
+            <span>phút</span>
+
+            <button type="button"
+                    id="setTimeButton"
+                    class="btn secondary">
+                Đặt thời gian
             </button>
 
         </div>
 
-    </section>
 
+        <div class="timer">
 
-    <!-- GIAO DIỆN CHÍNH -->
-    <main id="mainApp" class="main-app">
-
-        <header>
-            <h1>📚 Study Manager</h1>
-            <p>Trợ lý quản lý nhiệm vụ học tập</p>
-        </header>
-
-
-        <section class="dashboard">
-
-            <!-- GIỚI THIỆU -->
-            <div class="card welcome-card-main">
-                <h2>👋 Chào mừng!</h2>
-
-                <p>
-                    Study Manager giúp học sinh quản lý nhiệm vụ,
-                    theo dõi tiến độ và phân bổ thời gian học tập
-                    hiệu quả hơn.
-                </p>
-
-                <button onclick="showGuide()">
-                    📖 Hướng dẫn sử dụng
-                </button>
-
-                <div id="guide" class="guide" style="display:none;">
-                    <p><b>1.</b> Thêm nhiệm vụ học tập.</p>
-                    <p><b>2.</b> Chọn môn học và thời hạn.</p>
-                    <p><b>3.</b> Đánh dấu nhiệm vụ đã hoàn thành.</p>
-                    <p><b>4.</b> Sử dụng Pomodoro để tập trung học.</p>
-                </div>
+            <div id="timer">
+                25:00
             </div>
 
-
-            <!-- THÊM NHIỆM VỤ -->
-            <div class="card">
-                <h2>➕ Thêm nhiệm vụ</h2>
-
-                <form action="/add_task" method="POST">
-
-                    <label for="task">Tên nhiệm vụ</label>
-
-                    <input
-                        type="text"
-                        id="task"
-                        name="task"
-                        placeholder="Ví dụ: Học bài Vật lý"
-                        required
-                    >
-
-
-                    <label for="subject">Môn học</label>
-
-                    <input
-                        type="text"
-                        id="subject"
-                        name="subject"
-                        placeholder="Ví dụ: Vật lý"
-                    >
-
-
-                    <label for="due_date">Ngày hoàn thành</label>
-
-                    <input
-                        type="date"
-                        id="due_date"
-                        name="due_date"
-                        >
-
-
-                    <button type="submit">
-                        Thêm nhiệm vụ
-                    </button>
-
-                </form>
+            <div id="timerMessage">
+                Sẵn sàng bắt đầu
             </div>
 
-
-            <!-- DANH SÁCH NHIỆM VỤ -->
-            <div class="card">
-                <h2>📝 Nhiệm vụ học tập</h2>
-
-                {% if tasks %}
-
-                    <div class="task-list">
-
-                        {% for task in tasks %}
-
-                            <div class="task-item
-                                {% if task.completed %}completed{% endif %}">
-
-                                <div class="task-info">
-
-                                    <h3>
-                                        {{ task.name }}
-                                    </h3>
-
-                                    <p>
-                                        📚 Môn:
-                                        {{ task.subject or "Chưa nhập" }}
-                                    </p>
-
-                                    <p>
-                                        📅 Hạn:
-                                        {{ task.due_date or "Chưa nhập" }}
-                                    </p>
-
-                                    {% if task.completed %}
-                                        <span class="status completed-status">
-                                            ✓ Đã hoàn thành
-                                        </span>
-                                    {% else %}
-                                        <span class="status">
-                                            ⏳ Chưa hoàn thành
-                                        </span>
-                                    {% endif %}
-
-                                </div>
+        </div>
 
 
-                                <div class="task-actions">
+        <div class="timer-buttons">
 
-                                    <a href="/complete_task/{{ loop.index0 }}">
-                                        {% if task.completed %}
-                                            ↩ Bỏ hoàn thành
-                                        {% else %}
-                                            ✓ Hoàn thành
-                                        {% endif %}
-                                    </a>
+            <button type="button"
+                    id="startTimerButton"
+                    class="btn success">
+                ▶ Bắt đầu
+            </button>
 
-                                    <a
-                                        href="/delete_task/{{ loop.index0 }}"
-                                        onclick="return confirm('Bạn có chắc muốn xóa nhiệm vụ này?');"
-                                    >
-                                        🗑 Xóa
-                                    </a>
+            <button type="button"
+                    id="pauseTimerButton"
+                    class="btn warning">
+                ⏸ Tạm dừng
+            </button>
 
-                                </div>
+            <button type="button"
+                    id="resetTimerButton"
+                    class="btn secondary">
+                ↻ Đặt lại
+            </button>
 
-                            </div>
+        </div>
 
-                        {% endfor %}
+    </div>
 
-                    </div>
-
-                {% else %}
-
-                    <p class="empty">
-                        Chưa có nhiệm vụ nào.
-                    </p>
-
-                {% endif %}
-
-            </div>
+</section>
 
 
-            <!-- THỐNG KÊ -->
-            <div class="card">
-                <h2>📊 Thống kê</h2>
+<!-- TÍNH NĂNG -->
 
-                <div class="statistics">
+<section class="panel">
 
-                    <div>
-                        <strong id="totalTasks">0</strong>
-                        <span>Tổng nhiệm vụ</span>
-                    </div>
+    <div class="section-heading">
 
-                    <div>
-                        <strong id="completedTasks">0</strong>
-                        <span>Đã hoàn thành</span>
-                    </div>
+        <div>
 
-                    <div>
-                        <strong id="incompleteTasks">0</strong>
-                        <span>Chưa hoàn thành</span>
-                    </div>
+            <span class="section-label">
+                STUDYMANAGER
+            </span>
 
-                </div>
+            <h2>
+                ✨ Các tính năng
+            </h2>
 
-            </div>
+        </div>
+
+    </div>
 
 
-            <!-- NHẮC NHỞ -->
-            <div class="card">
+    <div class="feature-grid">
 
-                <h2>🔔 Nhắc nhở</h2>
+        <a href="{{ url_for('assignments') }}"
+           class="feature-card">
 
-                <div class="reminder-form">
+            <div>📋</div>
 
-                    <input
-                        type="text"
-                        id="reminderInput"
-                        placeholder="Nhập nội dung nhắc nhở..."
-                    >
+            <h3>
+                Quản lý bài tập
+            </h3>
 
-                    <button onclick="addReminder()">
-                        Thêm
-                    </button>
+            <p>
+                Thêm, sửa, xóa và đánh dấu trạng thái
+                hoàn thành của nhiệm vụ.
+            </p>
 
-                </div>
-
-                <div id="reminderList"></div>
-
-            </div>
+        </a>
 
 
-            <!-- POMODORO -->
-            <div class="card">
+        <a href="#statistics"
+           class="feature-card">
 
-                <h2>⏱ Pomodoro</h2>
+            <div>📊</div>
 
-                <p>
-                    Tập trung học trong khoảng thời gian bạn chọn.
-                </p>
+            <h3>
+                Theo dõi tiến độ
+            </h3>
 
-                <div class="pomodoro">
+            <p>
+                Xem nhanh số lượng nhiệm vụ và
+                mức độ hoàn thành.
+            </p>
 
-                    <input
-                        type="number"
-                        id="minutesInput"
-                        min="1"
-                        max="180"
-                        value="25"
-                        placeholder="Số phút"
-                    >
-
-                    <button onclick="setTime()">
-                        Đặt thời gian
-                    </button>
+        </a>
 
 
-                    <div id="timer">
-                        25:00
-                    </div>
+        <a href="#pomodoro"
+           class="feature-card">
+
+            <div>🍅</div>
+
+            <h3>
+                Pomodoro
+            </h3>
+
+            <p>
+                Tập trung học trong khoảng thời gian
+                do bạn lựa chọn.
+            </p>
+
+        </a>
 
 
-                    <div class="timer-buttons">
+        <a href="#add-task"
+           class="feature-card">
 
-                        <button onclick="startTimer()">
-                            ▶ Bắt đầu
-                        </button>
+            <div>⏰</div>
 
-                        <button onclick="pauseTimer()">
-                            ⏸ Tạm dừng
-                        </button>
+            <h3>
+                Deadline
+            </h3>
 
-                        <button onclick="resetTimer()">
-                            🔄 Đặt lại
-                        </button>
+            <p>
+                Nhận nhắc nhở khi nhiệm vụ sắp
+                đến hạn.
+            </p>
 
-                    </div>
+        </a>
 
-                </div>
+    </div>
 
-            </div>
+</section>
+```
 
-        </section>
+</main>
+
+<!-- DEADLINE REMINDER -->
+
+<div id="deadlineReminder"
+     class="deadline-reminder"
+     style="display: none;">
+
+```
+<strong>
+    ⏰ Nhắc nhở
+</strong>
+
+<p id="deadlineReminderText">
+    Có bài tập sắp đến hạn.
+</p>
+
+<button type="button"
+        id="closeDeadlineButton"
+        class="btn secondary">
+    Đã xem
+</button>
+```
+
+</div>
+
+<!-- HƯỚNG DẪN -->
+
+<div id="guideOverlay"
+     class="guide-overlay">
+
+```
+<div class="guide-modal">
+
+    <button type="button"
+            id="guideCloseButton"
+            class="guide-close">
+        ×
+    </button>
+
+    <h2>
+        📖 Hướng dẫn sử dụng StudyManager
+    </h2>
 
 
-        <footer>
-            <p>Study Manager — Hỗ trợ học sinh quản lý việc học</p>
-        </footer>
+    <div class="guide-step">
 
-    </main>
+        <strong>
+            1. Thêm bài tập
+        </strong>
+
+        <p>
+            Nhập tên bài tập, môn học và hạn hoàn thành,
+            sau đó chọn “Thêm nhiệm vụ”.
+        </p>
+
+    </div>
 
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <div class="guide-step">
+
+        <strong>
+            2. Quản lý nhiệm vụ
+        </strong>
+
+        <p>
+            Bạn có thể đánh dấu bài tập đã hoàn thành,
+            bỏ hoàn thành, chỉnh sửa hoặc xóa nhiệm vụ.
+        </p>
+
+    </div>
+
+
+    <div class="guide-step">
+
+        <strong>
+            3. Theo dõi tiến độ
+        </strong>
+
+        <p>
+            Khu vực thống kê cho biết tổng số nhiệm vụ,
+            số nhiệm vụ đã hoàn thành và tiến độ học tập.
+        </p>
+
+    </div>
+
+
+    <div class="guide-step">
+
+        <strong>
+            4. Sử dụng Pomodoro
+        </strong>
+
+        <p>
+            Nhập số phút muốn học, chọn “Đặt thời gian”
+            rồi nhấn “Bắt đầu”.
+        </p>
+
+    </div>
+
+
+    <div class="guide-step">
+
+        <strong>
+            5. Deadline
+        </strong>
+
+        <p>
+            StudyManager có thể hiển thị nhắc nhở
+            khi nhiệm vụ sắp đến hạn.
+        </p>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+<!-- QUAN TRỌNG: ĐỔI VERSION ĐỂ TRÌNH DUYỆT KHÔNG DÙNG JS CŨ -->
+
+<script src="{{ url_for('static', filename='script.js') }}?v=3"></script>
 
 </body>
 </html>

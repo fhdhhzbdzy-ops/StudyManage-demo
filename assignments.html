@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Xem bài tập - Study Manage</title>
+    <title>Bài tập - StudyManager</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -13,81 +12,392 @@
 
 <body>
 
-<header>
+    <!-- =========================
+         HEADER
+    ========================== -->
 
-    <h1>📖 Bài tập của tôi</h1>
+    <header class="top-header">
 
-    <p>Danh sách các nhiệm vụ học tập</p>
+        <div class="header-left">
+            <a href="{{ url_for('home') }}" class="brand">
+                📚 StudyManager
+            </a>
+        </div>
 
-</header>
+        <nav class="main-nav">
+
+            <a href="{{ url_for('home') }}">
+                🏠 Trang chủ
+            </a>
+
+            <a href="{{ url_for('assignments') }}" class="active">
+                📝 Bài tập
+            </a>
+
+            <a href="{{ url_for('home') }}#statistics">
+                📊 Thống kê
+            </a>
+
+            <a href="{{ url_for('home') }}#pomodoro">
+                🍅 Pomodoro
+            </a>
+
+            <button
+                type="button"
+                class="guide-button"
+                onclick="showGuide()">
+                💡 Hướng dẫn
+            </button>
+
+        </nav>
+
+    </header>
 
 
-<main class="dashboard">
+    <!-- =========================
+         MAIN
+    ========================== -->
 
-    {% if tasks %}
+    <main class="assignments-page">
 
-        {% for task in tasks %}
+        <!-- TIÊU ĐỀ -->
 
-        <section class="card">
+        <section class="assignments-heading">
 
-            {% if task["completed"] %}
+            <div>
 
-                <h2>
-                    <s>{{ task["name"] }}</s>
-                </h2>
+                <p class="small-title">
+                    STUDY MANAGER
+                </p>
 
-                <p>☑️ Đã hoàn thành</p>
+                <h1>
+                    📝 Danh sách bài tập
+                </h1>
+
+                <p>
+                    Theo dõi tất cả nhiệm vụ học tập,
+                    hạn nộp và tiến độ của bạn tại đây.
+                </p>
+
+            </div>
+
+
+            <a href="{{ url_for('home') }}"
+               class="back-home-button">
+
+                ← Về trang chủ
+
+            </a>
+
+        </section>
+
+
+        <!-- =========================
+             THANH THỐNG KÊ
+        ========================== -->
+
+        <section class="assignment-summary">
+
+            <div class="summary-box">
+
+                <div class="summary-icon">
+                    📚
+                </div>
+
+                <div>
+                    <span>Tổng bài tập</span>
+                    <strong id="totalAssignments">
+                        {{ tasks|length }}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="summary-box">
+
+                <div class="summary-icon">
+                    ⏳
+                </div>
+
+                <div>
+                    <span>Chưa hoàn thành</span>
+
+                    <strong id="unfinishedAssignments">
+                        {{ tasks|selectattr("completed", "equalto", false)|list|length }}
+                    </strong>
+
+                </div>
+
+            </div>
+            <div class="summary-box">
+
+                <div class="summary-icon">
+                    ✅
+                </div>
+
+                <div>
+                    <span>Đã hoàn thành</span>
+
+                    <strong id="completedAssignments">
+                        {{ tasks|selectattr("completed", "equalto", true)|list|length }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             BỘ LỌC
+        ========================== -->
+
+        <section class="assignment-tools">
+
+            <div class="search-area">
+
+                <span class="search-icon">
+                    🔎
+                </span>
+
+                <input
+                    type="text"
+                    id="searchAssignment"
+                    placeholder="Tìm kiếm bài tập hoặc môn học..."
+                    oninput="filterAssignments()"
+                >
+
+            </div>
+
+
+            <div class="filter-area">
+
+                <select
+                    id="statusFilter"
+                    onchange="filterAssignments()">
+
+                    <option value="all">
+                        Tất cả
+                    </option>
+
+                    <option value="unfinished">
+                        Chưa hoàn thành
+                    </option>
+
+                    <option value="completed">
+                        Đã hoàn thành
+                    </option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             DANH SÁCH
+        ========================== -->
+
+        <section class="assignments-container">
+
+            {% if tasks %}
+
+                <div id="assignmentList">
+
+                    {% for task in tasks %}
+
+                    <article
+                        class="assignment-item
+                        {% if task.completed %}
+                            assignment-completed
+                        {% endif %}"
+                        data-status="
+                            {% if task.completed %}
+                                completed
+                            {% else %}
+                                unfinished
+                            {% endif %}
+                        "
+                        data-search="
+                            {{ task.name|lower }}
+                            {{ task.subject|lower if task.subject else '' }}
+                        "
+                    >
+
+                        <!-- SỐ THỨ TỰ -->
+
+                        <div class="assignment-number">
+
+                            {{ loop.index }}
+
+                        </div>
+
+
+                        <!-- THÔNG TIN -->
+
+                        <div class="assignment-main">
+
+                            <div class="assignment-title-row">
+
+                                <h2>
+                                    {{ task.name }}
+                                    </h2>
+
+
+                                {% if task.completed %}
+
+                                <span class="status-badge completed-badge">
+                                    ✓ Đã hoàn thành
+                                </span>
+
+                                {% else %}
+
+                                <span class="status-badge pending-badge">
+                                    ⏳ Chưa hoàn thành
+                                </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div class="assignment-details">
+
+                                <span>
+                                    📘
+                                    {{ task.subject
+                                    if task.subject
+                                    else "Chưa có môn học" }}
+                                </span>
+
+
+                                <span>
+                                    📅
+
+                                    {% if task.deadline %}
+
+                                        {{ task.deadline }}
+
+                                    {% else %}
+
+                                        Chưa đặt hạn
+
+                                    {% endif %}
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- NÚT -->
+
+                        <div class="assignment-actions">
+
+                            {% if task.completed %}
+
+                                <a
+                                    href="{{ url_for('uncomplete_task', task_id=loop.index0) }}"
+                                    class="assignment-btn undo-btn">
+
+                                    ↩ Chưa xong
+
+                                </a>
+
+                            {% else %}
+
+                                <a
+                                    href="{{ url_for('complete_task', task_id=loop.index0) }}"
+                                    class="assignment-btn complete-btn">
+
+                                    ✓ Hoàn thành
+
+                                </a>
+
+                            {% endif %}
+
+
+                            <a
+                                href="{{ url_for('edit_task', task_id=loop.index0) }}"
+                                class="assignment-btn edit-btn">
+
+                                ✏ Sửa
+
+                            </a>
+
+
+                            <a
+                                href="{{ url_for('delete_task', task_id=loop.index0) }}"
+                                class="assignment-btn delete-btn"
+                                onclick="return confirm('Bạn có chắc chắn muốn xóa bài tập này không?');">
+
+                                🗑 Xóa
+
+                            </a>
+
+                        </div>
+
+                    </article>
+
+                    {% endfor %}
+
+                </div>
+                <!-- KHÔNG CÓ KẾT QUẢ TÌM KIẾM -->
+
+                <div
+                    id="noSearchResult"
+                    class="no-search-result"
+                    style="display: none;">
+
+                    <div>
+                        🔎
+                    </div>
+
+                    <h3>
+                        Không tìm thấy bài tập
+                    </h3>
+
+                    <p>
+                        Hãy thử thay đổi từ khóa hoặc bộ lọc.
+                    </p>
+
+                </div>
 
             {% else %}
 
-                <h2>
-                    {{ task["name"] }}
-                </h2>
+                <!-- CHƯA CÓ BÀI -->
 
-                <p>⏳ Chưa hoàn thành</p>
+                <div class="empty-assignments">
+
+                    <div class="empty-illustration">
+                        📖
+                    </div>
+
+                    <h2>
+                        Chưa có bài tập nào
+                    </h2>
+
+                    <p>
+                        Hãy quay lại trang chủ để thêm
+                        nhiệm vụ học tập đầu tiên.
+                    </p>
+
+                    <a
+                        href="{{ url_for('home') }}"
+                        class="add-first-task">
+
+                        ➕ Thêm bài tập
+
+                    </a>
+
+                </div>
 
             {% endif %}
 
-
-            <p>
-                📖 Môn học:
-                <strong>{{ task["subject"] }}</strong>
-            </p>
-
-
-            <p>
-                📅 Hạn:
-                <strong>{{ task["due_date"] }}</strong>
-            </p>
-
         </section>
 
-        {% endfor %}
-
-    {% else %}
-
-        <section class="card">
-
-            <h2>📭 Chưa có bài tập</h2>
-
-            <p>Bạn chưa thêm nhiệm vụ học tập nào.</p>
-
-        </section>
-
-    {% endif %}
-
-
-    <div class="menu">
-
-        <a href="/" class="button">
-            ← Quay lại trang chính
-        </a>
-
-    </div>
-
-</main>
-
-
-</body>
-
-</html>
+    <

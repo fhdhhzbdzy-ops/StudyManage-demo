@@ -2,86 +2,108 @@
 <html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Xem bài tập - Study Manage</title>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Bài tập của tôi</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
 <header>
 
-    <h1>📖 Bài tập của tôi</h1>
+    <h1>📚 Bài tập của tôi</h1>
 
-    <p>Danh sách các nhiệm vụ học tập</p>
+    <nav>
+
+        <a href="/">🏠 Trang chủ</a>
+
+        <a href="/assignments">
+            📚 Bài tập của tôi
+        </a>
+
+        <a href="/statistics">
+            📊 Thống kê
+        </a>
+
+    </nav>
 
 </header>
 
 
-<main class="dashboard">
+<main>
 
-    {% if tasks %}
+    <section>
 
-        {% for task in tasks %}
+        <h2>📝 Danh sách nhiệm vụ</h2>
 
-        <section class="card">
+        {% if tasks %}
 
-            {% if task["completed"] %}
+            {% for task in tasks %}
 
-                <h2>
-                    <s>{{ task["name"] }}</s>
-                </h2>
+            <div class="task
+                {% if task.completed %}
+                completed
+                {% endif %}">
 
-                <p>☑️ Đã hoàn thành</p>
+                <div>
 
-            {% else %}
+                    <h3>
+                        {{ task.name }}
+                    </h3>
 
-                <h2>
-                    {{ task["name"] }}
-                </h2>
+                    <p>
+                        📚 Môn: {{ task.subject }}
+                    </p>
 
-                <p>⏳ Chưa hoàn thành</p>
+                    <p>
+                        📅 Hạn: {{ task.deadline }}
+                    </p>
 
-            {% endif %}
+                </div>
 
-            <p>
-                📖 Môn học:
-                <strong>{{ task["subject"] }}</strong>
+                <div class="task-buttons">
+
+                    <a href="/complete/{{ loop.index0 }}">
+
+                        {% if task.completed %}
+                            ↩ Chưa hoàn thành
+                        {% else %}
+                            ✓ Hoàn thành
+                        {% endif %}
+
+                    </a>
+
+                    <a
+                        href="/delete/{{ loop.index0 }}"
+                        class="delete"
+                    >
+                        🗑 Xóa
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p class="empty">
+                Bạn chưa có bài tập nào.
             </p>
 
-            <p>
-                📅 Hạn:
-                <strong>{{ task["due_date"] }}</strong>
-            </p>
+        {% endif %}
 
-        </section>
-
-        {% endfor %}
-
-    {% else %}
-
-        <section class="card">
-
-            <h2>📭 Chưa có bài tập</h2>
-
-            <p>Bạn chưa thêm nhiệm vụ học tập nào.</p>
-
-        </section>
-
-    {% endif %}
-
-
-    <div class="menu">
-
-        <a href="/" class="button">
-            ← Quay lại trang chính
-        </a>
-
-    </div>
+    </section>
 
 </main>
 

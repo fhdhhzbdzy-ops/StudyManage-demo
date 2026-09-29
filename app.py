@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import json
 import os
 
@@ -7,7 +7,9 @@ app = Flask(__name__)
 TASK_FILE = "tasks.json"
 
 
-# ==================== ĐỌC NHIỆM VỤ ====================
+# =========================
+# ĐỌC DỮ LIỆU
+# =========================
 
 def load_tasks():
     if not os.path.exists(TASK_FILE):
@@ -17,180 +19,253 @@ def load_tasks():
         with open(TASK_FILE, "r", encoding="utf-8") as file:
             tasks = json.load(file)
 
-        for task in tasks:
-            if "completed" not in task:
-                task["completed"] = False
+            if not isinstance(tasks, list):
+                return []
 
-            if "subject" not in task:
-                task["subject"] = ""
+            for task in tasks:
+                task.setdefault("name", "")
+                task.setdefault("subject", "")
+                task.setdefault("deadline", "")
+                task.setdefault("completed", False)
 
-            if "due_date" not in task:
-                task["due_date"] = ""
+            return tasks
 
-        return tasks
-
-    except (json.JSONDecodeError, FileNotFoundError):
+    except (json.JSONDecodeError, OSError):
         return []
 
 
-# ==================== LƯU NHIỆM VỤ ====================
+# =========================
+# LƯU DỮ LIỆU
+# =========================
 
 def save_tasks(tasks):
     with open(TASK_FILE, "w", encoding="utf-8") as file:
-        json.dump(
-            tasks,
-            file,
-            ensure_ascii=False,
-            indent=4
-        )
+        json.dump(tasks, file, ensure_ascii=False, indent=4)
 
 
-# ==================== TRANG CHÍNH ====================
+# =========================
+# TÍNH THỐNG KÊ
+# =========================
+
+def get_stats(tasks):
+    total = len(tasks)
+
+    completed = sum(
+        1 for task in tasks
+        if task.get("completed", False)
+    )
+
+    unfinished = total - completed
+
+    if total > 0:
+        percent = round((completed / total) * 100)
+    else:
+        percent = 0
+
+    return {
+        "total": total,
+        "completed": completed,
+        "unfinished": unfinished,
+        "percent": percent
+    }
+
+
+# =========================
+# TRANG CHỦ
+# =========================
 
 @app.route("/")
 def home():
     tasks = load_tasks()
+    stats = get_stats(tasks)
 
     return render_template(
         "index.html",
-        tasks=tasks
+        tasks=tasks,
+        stats=stats,
+
+        # Giữ luôn các biến này để không phá
+        # những phần khác của index.html
+        total=stats["total"],
+        completed=stats["completed"],
+        unfinished=stats["unfinished"],
+        percent=stats["percent"]
     )
 
 
-# ==================== THÊM NHIỆM VỤ ====================
+# =========================
+# THÊM BÀI TẬP
+# =========================
 
 @app.route("/add_task", methods=["POST"])
 def add_task():
+    tasks = load_tasks()
 
-    task_name = request.form.get("task", "").strip()
+    name = request.form.get("name", "").strip()
     subject = request.form.get("subject", "").strip()
-    due_date = request.form.get("due_date", "")
+    deadline = request.form.get("deadline", "").strip()
 
-    if task_name:
-
-        tasks = load_tasks()
-
+    if name:
         tasks.append({
-            "name": task_name,
+            "name": name,
             "subject": subject,
-            "due_date": due_date,
+            "deadline": deadline,
             "completed": False
         })
 
         save_tasks(tasks)
 
-    return redirect("/")
+    return redirect(url_for("home"))
 
 
-# ==================== XEM BÀI TẬP ====================
+# =========================
+# HOÀN THÀNH
+# =========================
 
-@app.route("/assignments")
-def assignments():
-
+@app.route("/complete/<int:task_id>")
+def complete_task(task_id):
     tasks = load_tasks()
 
+    if 0 <= task_id < len(tasks):
+        tasks[task_id]["completed"] = True
+        save_tasks(tasks)
+
+    return redirect(request.referrer or url_for("home"))
+
+
+# =========================
+# BỎ HOÀN THÀNH
+# =========================
+@app.route("/uncomplete/<int:task_id>")
+def uncomplete_task(task_id):
+    tasks = load_tasks()
+
+    if 0 <= task_id < len(tasks):
+        tasks[task_id]["completed"] = False
+        save_tasks(tasks)
+
+    return redirect(request.referrer or url_for("home"))
+
+
+# =========================
+# XÓA
+# =========================
+
+@app.route("/delete/<int:task_id>")
+def delete_task(task_id):
+    tasks = load_tasks()
+
+    if 0 <= task_id < len(tasks):
+        tasks.pop(task_id)
+        save_tasks(tasks)
+
+    return redirect(request.referrer or url_for("home"))
+
+
+# =========================
+# SỬA
+# =========================
+
+@app.route("/edit/<int:task_id>", methods=["GET", "POST"])
+def edit_task(task_id):
+    tasks = load_tasks()
+
+    if task_id < 0 or task_id >= len(tasks):
+        return redirect(url_for("assignments"))
+
+    if request.method == "POST":
+        tasks[task_id]["name"] = request.form.get(
+            "name", ""
+        ).strip()
+
+        tasks[task_id]["subject"] = request.form.get(
+            "subject", ""
+        ).strip()
+
+        tasks[task_id]["deadline"] = request.form.get(
+            "deadline", ""
+        ).strip()
+
+        save_tasks(tasks)
+
+        return redirect(url_for("assignments"))
+
     return render_template(
-        "assignments.html",
-        tasks=tasks
+        "edit.html",
+        task=tasks[task_id],
+        task_id=task_id
     )
 
 
-# ==================== HOÀN THÀNH NHIỆM VỤ ====================
+# =========================
+# TRANG BÀI TẬP
+# =========================
 
-@app.route("/complete_task/<int:task_id>")
-def complete_task(task_id):
-
+@app.route("/assignments")
+def assignments():
     tasks = load_tasks()
+    stats = get_stats(tasks)
 
-    if 0 <= task_id < len(tasks):
+    return render_template(
+        "assignments.html",
+        tasks=tasks,
+        total=stats["total"],
+        completed=stats["completed"],
+        unfinished=stats["unfinished"],
+        stats=stats
+    )
 
-        tasks[task_id]["completed"] = not tasks[task_id]["completed"]
 
-        save_tasks(tasks)
+# =========================
+# API CHO JAVASCRIPT
+# =========================
 
-    return redirect("/")
+@app.route("/api/tasks")
+def api_tasks():
+    return jsonify(load_tasks())
 
 
-# ==================== XÓA NHIỆM VỤ ====================
+# =========================
+# THỐNG KÊ
+# =========================
 
-@app.route("/delete_task/<int:task_id>")
-def delete_task(task_id):
-
+@app.route("/statistics")
+def statistics():
     tasks = load_tasks()
+    stats = get_stats(tasks)
 
-    if 0 <= task_id < len(tasks):
-
-        tasks.pop(task_id)
-
-        save_tasks(tasks)
-
-    return redirect("/")
-
-
-# ==================== THOÁT ====================
-
-@app.route("/exit")
-def exit_app():
-
-    return """
-    <!DOCTYPE html>
-    <html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Study Manager</title>
-
-        <style>
-            body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background: #eef6ff;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-            }
-
-            .box {
-                background: white;
-                padding: 40px;
-                border-radius: 20px;
-                text-align: center;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            }
-
-            a {
-                display: inline-block;
-                margin-top: 20px;
-                padding: 12px 20px;
-                background: #4f8cff;
-                color: white;
-                text-decoration: none;
-                border-radius: 10px;
-            }
-        </style>
-    </head>
-
-    <body>
-
-        <div class="box">
-
-            <h1>👋 Đã thoát Study Manager</h1>
-
-            <p>Bạn có thể đóng tab này.</p>
-
-            <a href="/">
-                Quay lại Study Manager
-            </a>
-
-        </div>
-
-    </body>
-    </html>
-    """
+    return render_template(
+        "statistics.html",
+        tasks=tasks,
+        stats=stats,
+        total=stats["total"],
+        completed=stats["completed"],
+        unfinished=stats["unfinished"],
+        percent=stats["percent"]
+    )
 
 
-# ==================== CHẠY ỨNG DỤNG ====================
+# =========================
+# HƯỚNG DẪN
+# =========================
+
+@app.route("/guide")
+def guide():
+    return render_template("guide.html")
+
+
+# =========================
+# POMODORO
+# =========================
+
+@app.route("/pomodoro")
+def pomodoro():
+    return render_template("pomodoro.html")
+
+
+# =========================
+# CHẠY SERVER
+# =========================
 
 if __name__ == "__main__":
     app.run(

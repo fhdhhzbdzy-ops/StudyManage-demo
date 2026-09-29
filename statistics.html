@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Thống kê - StudyManager</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>📊 Thống kê học tập</h1>
+
+    <nav>
+
+        <a href="/">🏠 Trang chủ</a>
+
+        <a href="/assignments">
+            📚 Bài tập của tôi
+        </a>
+
+        <a href="/statistics">
+            📊 Thống kê
+        </a>
+
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="statistics-page">
+
+        <h2>📈 Tiến độ của bạn</h2>
+
+        <div class="big-number">
+            {{ percentage }}%
+        </div>
+
+        <p>
+            Bạn đã hoàn thành
+            <b>{{ completed }}</b>
+            trên tổng số
+            <b>{{ total }}</b>
+            nhiệm vụ.
+        </p>
+
+        <div class="stats">
+
+            <div>
+                <strong>{{ total }}</strong>
+                <span>Tổng số nhiệm vụ</span>
+            </div>
+
+            <div>
+                <strong>{{ completed }}</strong>
+                <span>Đã hoàn thành</span>
+            </div>
+
+            <div>
+                <strong>{{ unfinished }}</strong>
+                <span>Chưa hoàn thành</span>
+            </div>
+
+        </div>
+
+        <a class="back-button" href="/">
+            ← Quay lại trang chủ
+        </a>
+
+    </section>
+
+</main>
+
+</body>
+
+</html>

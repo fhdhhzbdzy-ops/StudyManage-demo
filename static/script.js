@@ -1,521 +1,689 @@
-// ==================================================
-// MÀN HÌNH CHÀO
-// ==================================================
+/* =========================================================
+   STUDYMANAGER - FULL JAVASCRIPT
+   Pomodoro + Hướng dẫn + Deadline + Thống kê
+========================================================= */
 
-function startStudyManager() {
+"use strict";
 
-    const welcomeScreen =
-        document.getElementById("welcomeScreen");
 
-    const mainApp =
-        document.getElementById("mainApp");
+/* =========================================================
+   BIẾN POMODORO
+========================================================= */
 
-    if (welcomeScreen) {
-        welcomeScreen.classList.add("hidden");
-    }
+let pomodoroInterval = null;
+let pomodoroRunning = false;
+let pomodoroTimeLeft = 25 * 60;
 
-    if (mainApp) {
-        mainApp.classList.remove("hidden");
-    }
 
+/* =========================================================
+   HIỂN THỊ THỜI GIAN
+========================================================= */
+
+function updatePomodoroDisplay() {
+
+    const timer = document.getElementById("timer");
+
+    if (!timer) return;
+
+    const minutes = Math.floor(pomodoroTimeLeft / 60);
+    const seconds = pomodoroTimeLeft % 60;
+
+    timer.textContent =
+        String(minutes).padStart(2, "0") +
+        ":" +
+        String(seconds).padStart(2, "0");
 }
 
 
-// ==================================================
-// HƯỚNG DẪN
-// ==================================================
+/* =========================================================
+   THÔNG BÁO POMODORO
+========================================================= */
 
-function toggleGuide() {
+function showTimerMessage(message) {
 
-    const guide =
-        document.getElementById("guideBox");
+    const messageBox =
+        document.getElementById("timerMessage");
 
-    if (!guide) return;
-
-    guide.classList.toggle("hidden");
-
-}
-
-
-// ==================================================
-// POMODORO
-// ==================================================
-
-let timer = null;
-
-let timeLeft = 25 * 60;
-
-let isRunning = false;
-
-
-function updateDisplay() {
-
-    const minutes =
-        Math.floor(timeLeft / 60);
-
-    const seconds =
-        timeLeft % 60;
-
-
-    const display =
-        document.getElementById("timer");
-
-
-    if (display) {
-
-        display.textContent =
-            String(minutes).padStart(2, "0")
-            + ":"
-            + String(seconds).padStart(2, "0");
-
+    if (messageBox) {
+        messageBox.textContent = message;
     }
-
 }
 
 
-function setTime() {
+/* =========================================================
+   LẤY SỐ PHÚT
+========================================================= */
+
+function getMinutes() {
 
     const input =
         document.getElementById("minutesInput");
 
-
-    if (!input) return;
-
-
-    const minutes =
-        Number(input.value);
-
-
-    if (
-        isNaN(minutes) ||
-        minutes <= 0
-    ) {
-
-        alert(
-            "Vui lòng nhập số phút hợp lệ!"
-        );
-
-        return;
-
+    if (!input) {
+        return 25;
     }
 
+    let minutes =
+        parseInt(input.value, 10);
 
-    clearInterval(timer);
+    if (Number.isNaN(minutes) || minutes < 1) {
+        minutes = 25;
+    }
 
-    timeLeft =
-        minutes * 60;
+    if (minutes > 180) {
+        minutes = 180;
+    }
 
-    isRunning = false;
+    input.value = minutes;
 
-    updateDisplay();
-
+    return minutes;
 }
 
 
-function playSound() {
+/* =========================================================
+   ĐẶT THỜI GIAN
+========================================================= */
 
-    const AudioContext =
-        window.AudioContext ||
-        window.webkitAudioContext;
+function setPomodoroTime() {
 
+    stopPomodoro();
 
-    if (!AudioContext) return;
+    const minutes = getMinutes();
 
+    pomodoroTimeLeft = minutes * 60;
 
-    const audioContext =
-        new AudioContext();
+    updatePomodoroDisplay();
 
-
-    const oscillator =
-        audioContext.createOscillator();
-
-
-    const gainNode =
-        audioContext.createGain();
-
-
-    oscillator.connect(gainNode);
-
-    gainNode.connect(
-        audioContext.destination
+    showTimerMessage(
+        "Đã đặt " +
+        minutes +
+        " phút. Sẵn sàng học!"
     );
-
-
-    oscillator.frequency.value =
-        880;
-
-
-    oscillator.type =
-        "sine";
-
-
-    gainNode.gain.setValueAtTime(
-        0.3,
-        audioContext.currentTime
-    );
-
-
-    gainNode.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioContext.currentTime + 1
-    );
-
-
-    oscillator.start();
-
-    oscillator.stop(
-        audioContext.currentTime + 1
-    );
-
 }
 
 
-function startTimer() {
+/* =========================================================
+   BẮT ĐẦU
+========================================================= */
 
-    if (isRunning) return;
+function startPomodoro() {
 
-
-    if (timeLeft <= 0) {
-
-        alert(
-            "Hãy đặt thời gian trước khi bắt đầu."
-        );
-
+    if (pomodoroRunning) {
         return;
-
     }
 
+    if (pomodoroTimeLeft <= 0) {
 
-    isRunning = true;
+        pomodoroTimeLeft =
+            getMinutes() * 60;
+    }
 
+    pomodoroRunning = true;
 
-    timer =
+    showTimerMessage(
+        "🔥 Đang tập trung học..."
+    );
+
+    pomodoroInterval =
         setInterval(function () {
 
-            if (timeLeft > 0) {
+            pomodoroTimeLeft--;
 
-                timeLeft--;
+            updatePomodoroDisplay();
 
-                updateDisplay();
+            if (pomodoroTimeLeft <= 0) {
 
-            }
-
-            else {
-
-                clearInterval(timer);
-                isRunning = false;
-
-                playSound();
-
-                alert(
-                    "🎉 Pomodoro đã kết thúc! Hãy nghỉ ngơi một chút."
-                );
+                finishPomodoro();
 
             }
 
         }, 1000);
-
 }
 
 
-function pauseTimer() {
+/* =========================================================
+   TẠM DỪNG
+========================================================= */
 
-    clearInterval(timer);
+function pausePomodoro() {
 
-    isRunning = false;
+    if (!pomodoroRunning) {
+        return;
+    }
 
+    stopPomodoro();
+
+    showTimerMessage(
+        "⏸ Đã tạm dừng"
+    );
 }
 
 
-function resetTimer() {
+/* =========================================================
+   DỪNG TIMER
+========================================================= */
 
-    clearInterval(timer);
+function stopPomodoro() {
 
-    isRunning = false;
+    pomodoroRunning = false;
 
-    timeLeft =
-        25 * 60;
+    if (pomodoroInterval !== null) {
 
-    updateDisplay();
+        clearInterval(pomodoroInterval);
 
+        pomodoroInterval = null;
+    }
 }
 
 
-// ==================================================
-// NHẮC NHỞ
-// ==================================================
+/* =========================================================
+   RESET
+========================================================= */
 
-let reminders = [];
+function resetPomodoro() {
 
+    stopPomodoro();
 
-function addReminder() {
+    pomodoroTimeLeft =
+        getMinutes() * 60;
 
-    const textInput =
-        document.getElementById(
-            "reminderText"
-        );
+    updatePomodoroDisplay();
 
-
-    const timeInput =
-        document.getElementById(
-            "reminderTime"
-        );
-
-
-    if (!textInput || !timeInput) {
-        return;
-    }
-
-
-    const text =
-        textInput.value.trim();
-
-
-    const time =
-        timeInput.value;
-
-
-    if (text === "") {
-
-        alert(
-            "Vui lòng nhập nội dung nhắc nhở!"
-        );
-
-        return;
-
-    }
-
-
-    if (time === "") {
-
-        alert(
-            "Vui lòng chọn thời gian nhắc nhở!"
-        );
-
-        return;
-
-    }
-
-
-    reminders.push({
-
-        text: text,
-
-        time: time
-
-    });
-
-
-    textInput.value = "";
-
-    timeInput.value = "";
-
-
-    showReminders();
-
+    showTimerMessage(
+        "Sẵn sàng bắt đầu"
+    );
 }
 
 
-function showReminders() {
+/* =========================================================
+   HOÀN THÀNH POMODORO
+========================================================= */
 
-    const list =
-        document.getElementById(
-            "reminderList"
-        );
+function finishPomodoro() {
 
+    stopPomodoro();
 
-    if (!list) return;
+    pomodoroTimeLeft = 0;
 
+    updatePomodoroDisplay();
 
-    list.innerHTML = "";
+    showTimerMessage(
+        "🎉 Hoàn thành phiên học!"
+    );
 
-
-    if (reminders.length === 0) {
-
-        list.innerHTML =
-            '<li class="empty-reminder">' +
-            'Chưa có nhắc nhở.' +
-            '</li>';
-
-        return;
-
-    }
+    playPomodoroSound();
+}
 
 
-    reminders.forEach(
-        function (reminder, index) {
+/* =========================================================
+   ÂM THANH
+========================================================= */
 
-            const item =
-                document.createElement("li");
+function playPomodoroSound() {
 
+    try {
 
-            const date =
-                new Date(reminder.time);
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
 
-
-            item.innerHTML =
-                "🔔 " +
-                escapeHTML(reminder.text) +
-                " — " +
-                date.toLocaleString("vi-VN") +
-                ' <button onclick="deleteReminder(' +
-                index +
-                ')">Xóa</button>';
-
-
-            list.appendChild(item);
-
+        if (!AudioContext) {
+            return;
         }
-    );
 
-}
+        const audio =
+            new AudioContext();
 
+        const oscillator =
+            audio.createOscillator();
 
-function deleteReminder(index) {
+        const gain =
+            audio.createGain();
 
-    reminders.splice(
-        index,
-        1
-    );
+        oscillator.connect(gain);
+        gain.connect(audio.destination);
 
+        oscillator.frequency.value = 880;
 
-    showReminders();
+        gain.gain.value = 0.15;
 
-}
+        oscillator.start();
 
+        setTimeout(function () {
 
-// ==================================================
-// BẢO VỆ NỘI DUNG NHẮC NHỞ
-// ==================================================
+            oscillator.stop();
 
-function escapeHTML(text) {
+            audio.close();
 
-    const div =
-        document.createElement("div");
+        }, 700);
 
+    } catch (error) {
 
-    div.textContent = text;
-
-
-    return div.innerHTML;
-
-}
-
-
-// ==================================================
-// THỐNG KÊ
-// ==================================================
-
-function updateStatistics() {
-
-    const tasks =
-        document.querySelectorAll(
-            ".task-item"
+        console.log(
+            "Không thể phát âm thanh:",
+            error
         );
+    }
+}
 
 
-    const total =
-        tasks.length;
-        let completed = 0;
+/* =========================================================
+   HƯỚNG DẪN SỬ DỤNG
+========================================================= */
+
+function showGuide() {
+
+    const guide =
+        document.getElementById("guideOverlay");
+
+    if (!guide) {
+        console.log("Không tìm thấy guideOverlay");
+        return;
+    }
+
+    guide.style.display = "flex";
+}
 
 
-    tasks.forEach(
-        function (task) {
+function closeGuide() {
 
-            if (
-                task.dataset.completed ===
-                "true"
-            ) {
+    const guide =
+        document.getElementById("guideOverlay");
 
-                completed++;
+    if (!guide) {
+        return;
+    }
 
+    guide.style.display = "none";
+}
+
+
+/* =========================================================
+   CLICK RA NGOÀI ĐỂ ĐÓNG HƯỚNG DẪN
+========================================================= */
+
+function setupGuide() {
+
+    const guide =
+        document.getElementById("guideOverlay");
+
+    if (!guide) {
+        return;
+    }
+
+    guide.addEventListener(
+        "click",
+        function (event) {
+
+            if (event.target === guide) {
+                closeGuide();
             }
 
         }
     );
-
-
-    const remaining =
-        total - completed;
-
-
-    const totalElement =
-        document.getElementById(
-            "totalTasks"
-        );
-
-
-    const completedElement =
-        document.getElementById(
-            "completedTasks"
-        );
-
-
-    const remainingElement =
-        document.getElementById(
-            "remainingTasks"
-        );
-
-
-    if (totalElement) {
-
-        totalElement.textContent =
-            total;
-
-    }
-
-
-    if (completedElement) {
-
-        completedElement.textContent =
-            completed;
-
-    }
-
-
-    if (remainingElement) {
-
-        remainingElement.textContent =
-            remaining;
-
-    }
-
 }
 
 
-// ==================================================
-// KHỞI ĐỘNG
-// ==================================================
+/* =========================================================
+   DEADLINE
+========================================================= */
+
+function showDeadlineNotification(task) {
+
+    const reminder =
+        document.getElementById(
+            "deadlineReminder"
+        );
+
+    const text =
+        document.getElementById(
+            "deadlineReminderText"
+        );
+
+    if (!reminder) {
+        return;
+    }
+
+    if (text) {
+
+        text.textContent =
+            'Bài tập "' +
+            task.name +
+            '" sắp đến hạn vào ' +
+            task.deadline +
+            ".";
+
+    }
+
+    reminder.style.display = "block";
+}
+
+
+function closeDeadlineReminder() {
+
+    const reminder =
+        document.getElementById(
+            "deadlineReminder"
+        );
+
+    if (reminder) {
+        reminder.style.display = "none";
+    }
+}
+
+
+function checkDeadlines() {
+
+    fetch("/api/tasks")
+
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error("Không thể tải nhiệm vụ");
+            }
+
+            return response.json();
+
+        })
+
+        .then(function (tasks) {
+
+            const now = new Date();
+
+            const oneDay =
+                24 * 60 * 60 * 1000;
+
+            for (const task of tasks) {
+
+                if (
+                    task.completed ||
+                    !task.deadline
+                ) {
+                    continue;
+                }
+
+                const deadline =
+                    new Date(
+                        task.deadline +
+                        "T23:59:59"
+                    );
+
+                const difference =
+                    deadline - now;
+
+                if (
+                    difference >= 0 &&
+                    difference <= oneDay
+                ) {
+
+                    showDeadlineNotification(task);
+
+                    break;
+                }
+            }
+
+        })
+
+        .catch(function (error) {
+
+            console.log(
+                "Không thể kiểm tra deadline:",
+                error
+            );
+
+        });
+}
+
+
+/* =========================================================
+   THỐNG KÊ
+========================================================= */
+
+function updateStatistics() {
+
+    fetch("/api/tasks")
+
+        .then(function (response) {
+
+            if (!response.ok) {
+                throw new Error("API lỗi");
+            }
+
+            return response.json();
+
+        })
+
+        .then(function (tasks) {
+
+            const total =
+                tasks.length;
+
+            const completed =
+                tasks.filter(function (task) {
+
+                    return task.completed;
+
+                }).length;
+
+            const unfinished =
+                total - completed;
+
+            const percent =
+                total > 0
+                    ? Math.round(
+                        completed /
+                        total *
+                        100
+                    )
+                    : 0;
+
+
+            const totalElement =
+                document.getElementById(
+                    "totalTasks"
+                );
+
+            const completedElement =
+                document.getElementById(
+                    "completedTasks"
+                );
+
+            const unfinishedElement =
+                document.getElementById(
+                    "unfinishedTasks"
+                );
+
+            const percentElement =
+                document.getElementById(
+                    "progressPercent"
+                );
+
+            const progressFill =
+                document.getElementById(
+                    "progressFill"
+                );
+
+
+            if (totalElement) {
+
+                totalElement.textContent =
+                    total;
+            }
+
+
+            if (completedElement) {
+
+                completedElement.textContent =
+                    completed;
+            }
+
+
+            if (unfinishedElement) {
+
+                unfinishedElement.textContent =
+                    unfinished;
+            }
+
+
+            if (percentElement) {
+
+                percentElement.textContent =
+                    percent + "%";
+            }
+
+
+            if (progressFill) {
+
+                progressFill.style.width =
+                    percent + "%";
+            }
+
+        })
+
+        .catch(function (error) {
+
+            console.log(
+                "Không thể cập nhật thống kê:",
+                error
+            );
+
+        });
+}
+
+
+/* =========================================================
+   GẮN NÚT
+========================================================= */
+
+function setupButtons() {
+
+    /* HƯỚNG DẪN */
+
+    const guideButton =
+        document.querySelector(
+            ".guide-button"
+        );
+
+    if (guideButton) {
+
+        guideButton.addEventListener(
+            "click",
+            showGuide
+        );
+    }
+
+
+    const closeGuideButton =
+        document.querySelector(
+            ".guide-close"
+        );
+
+    if (closeGuideButton) {
+
+        closeGuideButton.addEventListener(
+            "click",
+            closeGuide
+        );
+    }
+
+
+    /* POMODORO */
+
+    const setTimeButton =
+        document.getElementById(
+            "setTimeButton"
+        );
+
+    if (setTimeButton) {
+
+        setTimeButton.addEventListener(
+            "click",
+            setPomodoroTime
+        );
+    }
+
+
+    const startButton =
+        document.getElementById(
+            "startTimerButton"
+        );
+
+    if (startButton) {
+
+        startButton.addEventListener(
+            "click",
+            startPomodoro
+        );
+    }
+
+
+    const pauseButton =
+        document.getElementById(
+            "pauseTimerButton"
+        );
+
+    if (pauseButton) {
+
+        pauseButton.addEventListener(
+            "click",
+            pausePomodoro
+        );
+    }
+
+
+    const resetButton =
+        document.getElementById(
+            "resetTimerButton"
+        );
+
+    if (resetButton) {
+
+        resetButton.addEventListener(
+            "click",
+            resetPomodoro
+        );
+    }
+
+
+    /* DEADLINE */
+
+    const closeReminderButton =
+        document.querySelector(
+            ".deadline-reminder button"
+        );
+
+    if (closeReminderButton) {
+
+        closeReminderButton.addEventListener(
+            "click",
+            closeDeadlineReminder
+        );
+    }
+}
+
+
+/* =========================================================
+   KHỞI ĐỘNG
+========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        updateDisplay();
+        console.log(
+            "StudyManager JavaScript đã chạy."
+        );
+
+
+        updatePomodoroDisplay();
+
+        setupButtons();
+
+        setupGuide();
 
         updateStatistics();
 
-
-        const reminderForm =
-            document.getElementById(
-                "reminderForm"
-            );
-
-
-        if (reminderForm) {
-
-            reminderForm.addEventListener(
-                "submit",
-                function (event) {
-
-                    event.preventDefault();
-
-                    addReminder();
-
-                }
-            );
-
-        }
+        checkDeadlines();
 
     }
 );
