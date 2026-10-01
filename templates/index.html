@@ -1,719 +1,1582 @@
 <!DOCTYPE html>
-
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16a085">
 
-```
-<title>StudyManager - Quản lý học tập</title>
+    <title>StudyManager</title>
 
-<link rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}?v=3">
-```
-
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
 </head>
 
 <body>
 
-<header class="top-header">
+<!-- =========================================================
+     SPLASH SCREEN
+========================================================= -->
+<div id="splashScreen" class="splash-screen">
 
-```
-<div class="brand">
-    <span class="brand-icon">📚</span>
-    <span>StudyManager</span>
-</div>
+    <div class="splash-content">
 
-<nav class="main-nav">
-    <a href="{{ url_for('home') }}" class="active">Trang chủ</a>
-    <a href="{{ url_for('assignments') }}">Bài tập</a>
-    <a href="#statistics">Thống kê</a>
-    <a href="#pomodoro">Pomodoro</a>
-</nav>
+        <div class="splash-logo">
+            <img
+                src="{{ url_for('static', filename='logo.png') }}"
+                alt="StudyManager"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            >
 
-<button type="button"
-        id="guideButton"
-        class="guide-button">
-    📖 Hướng dẫn sử dụng
-</button>
-```
+            <div class="logo-book" style="display:none;">
+                📚
+            </div>
+        </div>
 
-</header>
+        <h1>StudyManager</h1>
 
-<section class="hero">
+        <p>Học tập thông minh hơn mỗi ngày</p>
 
-```
-<div class="container">
+        <div class="loading-track">
+            <div class="loading-fill"></div>
+        </div>
 
-    <div class="hero-content">
-
-        <span class="hero-badge">
-            📚 STUDYMANAGER
+        <span class="loading-text">
+            Đang chuẩn bị không gian học tập...
         </span>
 
-        <h1>
-            Học tập
-            <span>chủ động hơn</span>
-        </h1>
+    </div>
 
-        <p>
-            Quản lý bài tập, theo dõi tiến độ và
-            phân bổ thời gian học tập một cách hợp lý.
-        </p>
-
-        <div class="hero-buttons">
-
-            <a href="#add-task"
-               class="primary-button">
-                + Thêm bài tập
-            </a>
-
-            <a href="{{ url_for('assignments') }}"
-               class="secondary-button">
-                📋 Xem bài tập
-            </a>
-
-        </div>
-
+    <!-- Ô TÔ CHẠY -->
+    <div
+        class="splash-car car"
+        aria-hidden="true"
+    >
+        🚗
     </div>
 
 </div>
-```
 
-</section>
 
-<main class="container">
+<!-- =========================================================
+     STUDY APP
+========================================================= -->
+<div id="studyApp" class="study-app">
 
-```
-<!-- THỐNG KÊ -->
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+    <aside id="sidebar" class="sidebar">
 
-<section class="stats-grid" id="statistics">
+        <div class="brand">
 
-    <div class="stat-card">
+            <div class="brand-logo">
+                <img
+                    src="{{ url_for('static', filename='logo.png') }}"
+                    alt="StudyManager"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                >
 
-        <div class="stat-icon">📝</div>
+                <span style="display:none;">📚</span>
+            </div>
 
-        <div>
-            <p>Tổng nhiệm vụ</p>
-            <strong id="totalTasks">
-                {{ stats.total }}
-            </strong>
+            <div class="brand-text">
+                <strong>StudyManager</strong>
+                <span>Study smarter</span>
+            </div>
+
         </div>
 
-    </div>
 
+        <nav class="main-nav">
 
-    <div class="stat-card">
-
-        <div class="stat-icon">⏳</div>
-
-        <div>
-            <p>Chưa hoàn thành</p>
-            <strong id="unfinishedTasks">
-                {{ stats.unfinished }}
-            </strong>
-        </div>
-
-    </div>
-
-
-    <div class="stat-card">
-
-        <div class="stat-icon">✅</div>
-
-        <div>
-            <p>Đã hoàn thành</p>
-            <strong id="completedTasks">
-                {{ stats.completed }}
-            </strong>
-        </div>
-
-    </div>
-
-
-    <div class="stat-card">
-
-        <div class="stat-icon">📈</div>
-
-        <div>
-            <p>Tiến độ</p>
-            <strong id="progressPercent">
-                {{ stats.percent }}%
-            </strong>
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- THÊM BÀI TẬP -->
-
-<section class="panel" id="add-task">
-
-    <div class="section-heading">
-
-        <div>
-            <span class="section-label">
-                QUẢN LÝ NHIỆM VỤ
-            </span>
-
-            <h2>
-                ➕ Thêm bài tập mới
-            </h2>
-        </div>
-
-    </div>
-
-
-    <form action="{{ url_for('add_task') }}"
-          method="POST"
-          class="task-form">
-
-        <div class="form-group">
-
-            <label for="name">
-                Tên bài tập
-            </label>
-
-            <input
-                type="text"
-                id="name"
-                name="name"
-                placeholder="Ví dụ: Học thuộc công thức Vật lý"
-                required
+            <button
+                class="nav-item active"
+                data-section="home"
+                type="button"
             >
+                <span class="nav-icon">🏠</span>
+                <span>Trang chủ</span>
+            </button>
 
-        </div>
 
-
-        <div class="form-group">
-
-            <label for="subject">
-                Môn học
-            </label>
-
-            <input
-                type="text"
-                id="subject"
-                name="subject"
-                placeholder="Ví dụ: Vật lý"
-                required
+            <button
+                class="nav-item"
+                data-section="assignments"
+                type="button"
             >
+                <span class="nav-icon">📚</span>
+                <span>Bài tập</span>
+            </button>
 
-        </div>
 
-
-        <div class="form-group">
-
-            <label for="deadline">
-                Hạn hoàn thành
-            </label>
-
-            <input
-                type="date"
-                id="deadline"
-                name="deadline"
-                required
+            <button
+                class="nav-item"
+                data-section="study"
+                type="button"
             >
+                <span class="nav-icon">🎯</span>
+                <span>Study Mode</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="pomodoro"
+                type="button"
+            >
+                <span class="nav-icon">⏱️</span>
+                <span>Pomodoro</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="statistics"
+                type="button"
+            >
+                <span class="nav-icon">📊</span>
+                <span>Thống kê</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="notifications"
+                type="button"
+            >
+                <span class="nav-icon">🔔</span>
+                <span>Thông báo</span>
+
+                <span
+                    id="notificationBadge"
+                    class="notification-badge"
+                >
+                    0
+                </span>
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <button
+                class="guide-menu"
+                id="openGuideButton"
+                type="button"
+            >
+                <span class="nav-icon">❔</span>
+                <span>Hướng dẫn sử dụng</span>
+            </button>
+
+
+            <div class="user-mini">
+
+                <div class="avatar">
+                    👤
+                </div>
+
+                <div class="user-mini-info">
+                    <small>Mã người dùng</small>
+
+                    <strong id="userIdDisplay">
+                        {{ user_id }}
+                    </strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MOBILE HEADER
+    ====================================================== -->
+    <header class="mobile-header">
+
+        <div class="mobile-brand">
+
+            <div class="brand-logo">
+                <img
+                    src="{{ url_for('static', filename='logo.png') }}"
+                    alt="StudyManager"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                >
+
+                <span style="display:none;">📚</span>
+            </div>
+
+            <strong>StudyManager</strong>
 
         </div>
 
 
-        <button type="submit"
-                class="primary-button">
-            + Thêm nhiệm vụ
+        <button
+            id="mobileMenuButton"
+            class="mobile-menu-button"
+            type="button"
+            aria-label="Mở menu"
+        >
+            ☰
         </button>
 
-    </form>
-
-</section>
+    </header>
 
 
-<!-- DANH SÁCH BÀI TẬP -->
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+    <main class="main-content">
 
-<section class="panel">
+        <!-- TOP BAR -->
+        <header class="topbar">
 
-    <div class="section-heading">
+            <div class="topbar-title">
 
-        <div>
+                <span class="page-small">
+                    STUDY DASHBOARD
+                </span>
 
-            <span class="section-label">
-                NHIỆM VỤ
-            </span>
-
-            <h2>
-                📋 Bài tập của bạn
-            </h2>
-
-        </div>
-
-        <a href="{{ url_for('assignments') }}"
-           class="text-link">
-            Xem tất cả →
-        </a>
-
-    </div>
-
-
-    {% if tasks %}
-
-    <div class="task-list">
-
-        {% for task in tasks %}
-
-        <div class="task-card
-                    {% if task.completed %}completed{% endif %}">
-
-            <div class="task-info">
-
-                <h3>
-                    {{ task.name }}
-                </h3>
-
-                <p>
-                    📚 Môn: {{ task.subject }}
-                </p>
-
-                <p>
-                    📅 Hạn:
-                    {{ task.deadline if task.deadline else "Chưa đặt" }}
-                </p>
-
-                <p>
-                    {% if task.completed %}
-                        ✅ Đã hoàn thành
-                    {% else %}
-                        ⏳ Chưa hoàn thành
-                    {% endif %}
-                </p>
+                <h1 id="pageTitle">
+                    Trang chủ
+                </h1>
 
             </div>
 
 
-            <div class="task-actions">
+            <div class="top-actions">
 
-                {% if task.completed %}
+                <button
+                    class="icon-button"
+                    data-section="notifications"
+                    type="button"
+                    title="Thông báo"
+                >
+                    🔔
 
-                <a class="btn warning"
-                   href="{{ url_for('uncomplete_task', task_id=loop.index0) }}">
-                    ↩ Bỏ hoàn thành
-                </a>
-
-                {% else %}
-
-                <a class="btn success"
-                   href="{{ url_for('complete_task', task_id=loop.index0) }}">
-                    ✓ Hoàn thành
-                </a>
-
-                {% endif %}
-
-
-                <a class="btn secondary"
-                   href="{{ url_for('edit_task', task_id=loop.index0) }}">
-                    ✏ Sửa
-                </a>
+                    <span
+                        id="topNotificationBadge"
+                        class="top-notification-badge"
+                    >
+                        0
+                    </span>
+                </button>
 
 
-                <a class="btn danger"
-                   href="{{ url_for('delete_task', task_id=loop.index0) }}"
-                   onclick="return confirm('Bạn có chắc muốn xóa nhiệm vụ này không?');">
-                    🗑 Xóa
-                </a>
+                <div class="top-user">
+
+                    <span>👤</span>
+
+                    <strong id="topUserId">
+                        {{ user_id }}
+                    </strong>
+
+                </div>
 
             </div>
 
-        </div>
-
-        {% endfor %}
-
-    </div>
-
-    {% else %}
-
-    <div class="empty">
-
-        <div class="empty-icon">
-            📚
-        </div>
-
-        <p>
-            Chưa có bài tập nào.
-            Hãy thêm nhiệm vụ đầu tiên của bạn!
-        </p>
-
-    </div>
-
-    {% endif %}
-
-</section>
+        </header>
 
 
-<!-- TIẾN ĐỘ -->
+        <!-- =================================================
+             HOME
+        ================================================== -->
+        <section
+            id="section-home"
+            class="app-section active"
+        >
 
-<section class="panel">
+            <!-- HERO -->
+            <div class="welcome-card">
 
-    <div class="section-heading">
+                <div class="welcome-text">
 
-        <div>
+                    <span class="eyebrow">
+                        STUDY SMARTER
+                    </span>
 
-            <span class="section-label">
-                TIẾN ĐỘ
-            </span>
+                    <h2>
+                        Học tập
+                        <span>
+                            thông minh hơn.
+                        </span>
+                    </h2>
 
-            <h2>
-                📈 Tiến độ học tập
-            </h2>
-
-        </div>
-
-        <strong class="progress-number">
-            {{ stats.percent }}%
-        </strong>
-
-    </div>
+                    <p>
+                        Quản lý bài tập, theo dõi tiến độ
+                        và dành thời gian cho những điều
+                        quan trọng nhất.
+                    </p>
 
 
-    <div class="progress-box">
+                    <div class="welcome-actions">
 
-        <div class="progress-bar">
+                        <button
+                            class="primary-button"
+                            id="homeAddTaskButton"
+                            type="button"
+                        >
+                            <span>＋</span>
+                            Thêm nhiệm vụ
+                        </button>
+
+
+                        <button
+                            class="secondary-button"
+                            id="homeStudyButton"
+                            type="button"
+                        >
+                            <span>🎯</span>
+                            Bắt đầu học
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="welcome-illustration">
+
+                    <div class="illustration-glow"></div>
+
+                    <div class="illustration-circle">
+                        📖
+                    </div>
+
+                    <div class="floating-note note-one">
+                        ✓
+                    </div>
+
+                    <div class="floating-note note-two">
+                        25'
+                    </div>
+
+                    <div class="floating-note note-three">
+                        ⭐
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATS -->
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <div class="stat-icon green">
+                        📚
+                    </div>
+
+                    <div>
+                        <span>Tổng nhiệm vụ</span>
+
+                        <strong id="statisticsTotal">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon blue">
+                        ✓
+                    </div>
+
+                    <div>
+                        <span>Đã hoàn thành</span>
+
+                        <strong id="statisticsCompleted">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon orange">
+                        ⏳
+                    </div>
+
+                    <div>
+                        <span>Còn lại</span>
+
+                        <strong id="statisticsRemaining">
+                            0
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon purple">
+                        🎯
+                    </div>
+
+                    <div>
+                        <span>Tiến độ</span>
+
+                        <strong>
+                            <span id="statisticsPercent">
+                                0
+                            </span>%
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROGRESS + WEEKLY -->
+            <div class="dashboard-grid">
+
+                <!-- PROGRESS -->
+                <div class="panel progress-panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+                            <span class="panel-label">
+                                TIẾN ĐỘ
+                            </span>
+
+                            <h3>
+                                Tiến độ học tập
+                            </h3>
+                        </div>
+
+                        <strong id="bigProgressPercent">
+                            0%
+                        </strong>
+
+                    </div>
+
+
+                    <div class="big-progress">
+
+                        <div
+                            id="statisticsProgressFill"
+                            class="big-progress-fill"
+                            style="width: 0%;"
+                        ></div>
+
+                    </div>
+
+
+                    <div class="progress-info">
+
+                        <span>
+                            Đã hoàn thành:
+                            <strong id="progressCompleted">
+                                0
+                            </strong>
+                        </span>
+
+                        <span>
+                            Còn lại:
+                            <strong id="progressRemaining">
+                                0
+                            </strong>
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- WEEKLY -->
+                <div class="panel weekly-panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+                            <span class="panel-label">
+                                BÁO CÁO TUẦN
+                            </span>
+
+                            <h3>
+                                Tuần này
+                            </h3>
+                        </div>
+
+                        <span class="weekly-icon">
+                            📈
+                        </span>
+
+                    </div>
+
+
+                    <div class="weekly-number">
+
+                        <span id="weeklyStudyTime">
+                            0 phút
+                        </span>
+
+                        <small>
+                            thời gian học
+                        </small>
+
+                    </div>
+
+
+                    <div class="weekly-mini-grid">
+
+                        <div>
+
+                            <strong id="weeklyCompleted">
+                                0
+                            </strong>
+
+                            <span>
+                                hoàn thành
+                            </span>
+
+                        </div>
+
+
+                        <div>
+
+                            <strong id="weeklyRemaining">
+                                0
+                            </strong>
+
+                            <span>
+                                còn lại
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- UPCOMING -->
+            <div class="panel upcoming-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <span class="panel-label">
+                            DEADLINE
+                        </span>
+
+                        <h3>
+                            Nhiệm vụ cần chú ý
+                        </h3>
+                    </div>
+
+
+                    <button
+                        class="text-button"
+                        data-section="assignments"
+                        type="button"
+                    >
+                        Xem tất cả →
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="homeUpcomingTasks"
+                    class="upcoming-list"
+                >
+
+                    <div class="empty-state">
+
+                        <div>
+                            ✨
+                        </div>
+
+                        <strong>
+                            Chưa có nhiệm vụ nào
+                        </strong>
+
+                        <span>
+                            Hãy thêm nhiệm vụ đầu tiên của bạn.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             ASSIGNMENTS
+        ================================================== -->
+        <section
+            id="section-assignments"
+            class="app-section"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <span class="eyebrow">
+                        MY TASKS
+                    </span>
+
+                    <h2>
+                        Bài tập của tôi
+                    </h2>
+
+                    <p>
+                        Theo dõi mọi nhiệm vụ và deadline
+                        trong một nơi.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    id="assignmentAddButton"
+                    type="button"
+                >
+                    <span>＋</span>
+                    Thêm bài tập
+                </button>
+
+            </div>
+
+
+            <div class="assignment-toolbar">
+
+                <div class="search-box">
+
+                    <span>🔎</span>
+
+                    <input
+                        id="taskSearch"
+                        type="text"
+                        placeholder="Tìm bài tập..."
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <select id="priorityFilter">
+
+                    <option value="all">
+                        Tất cả mức độ
+                    </option>
+
+                    <option value="high">
+                        Ưu tiên cao
+                    </option>
+
+                    <option value="normal">
+                        Bình thường
+                    </option>
+
+                    <option value="advanced">
+                        Nâng cao
+                    </option>
+
+                </select>
+
+
+                <select id="statusFilter">
+
+                    <option value="all">
+                        Tất cả
+                    </option>
+
+                    <option value="unfinished">
+                        Chưa hoàn thành
+                    </option>
+
+                    <option value="completed">
+                        Đã hoàn thành
+                    </option>
+
+                </select>
+
+            </div>
+
 
             <div
-                id="progressFill"
-                class="progress-fill"
-                style="width: {{ stats.percent }}%;">
-            </div>
-
-        </div>
-
-
-        <p class="progress-text">
-
-            Bạn đã hoàn thành
-            <strong>{{ stats.completed }}</strong>
-            trên tổng số
-            <strong>{{ stats.total }}</strong>
-            nhiệm vụ.
-
-        </p>
-
-    </div>
-
-</section>
-
-
-<!-- POMODORO -->
-
-<section class="panel pomodoro"
-         id="pomodoro">
-
-    <div class="section-heading">
-
-        <div>
-
-            <span class="section-label">
-                TẬP TRUNG
-            </span>
-
-            <h2>
-                🍅 Pomodoro
-            </h2>
-
-        </div>
-
-    </div>
-
-
-    <div class="pomodoro-box">
-
-        <p class="pomodoro-description">
-            Chọn thời gian học tập và bắt đầu phiên tập trung.
-        </p>
-
-
-        <div class="pomodoro-setting">
-
-            <label for="minutesInput">
-                Thời gian:
-            </label>
-
-            <input
-                type="number"
-                id="minutesInput"
-                value="25"
-                min="1"
-                max="180"
+                id="assignmentList"
+                class="assignment-grid"
             >
 
-            <span>phút</span>
+                <div class="empty-state large">
 
-            <button type="button"
-                    id="setTimeButton"
-                    class="btn secondary">
-                Đặt thời gian
-            </button>
+                    <div>
+                        📚
+                    </div>
 
-        </div>
+                    <strong>
+                        Chưa có bài tập nào
+                    </strong>
 
+                    <span>
+                        Thêm nhiệm vụ đầu tiên để bắt đầu
+                        quản lý việc học.
+                    </span>
 
-        <div class="timer">
+                    <button
+                        class="primary-button"
+                        id="emptyAddButton"
+                        type="button"
+                    >
+                        ＋ Thêm nhiệm vụ
+                    </button>
 
-            <div id="timer">
-                25:00
+                </div>
+
             </div>
 
-            <div id="timerMessage">
-                Sẵn sàng bắt đầu
+        </section>
+
+
+        <!-- =================================================
+             STUDY MODE
+        ================================================== -->
+        <section
+            id="section-study"
+            class="app-section"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <span class="eyebrow">
+                        FOCUS
+                    </span>
+
+                    <h2>
+                        Study Mode
+                    </h2>
+
+                    <p>
+                        Tập trung vào một nhiệm vụ và
+                        hạn chế xao nhãng.
+                    </p>
+
+                </div>
+
             </div>
 
-        </div>
+
+            <div class="study-mode-card">
+
+                <div class="study-orbit">
+
+                    <div class="study-orbit-inner">
+                        🎯
+                    </div>
+
+                </div>
 
 
-        <div class="timer-buttons">
+                <div class="study-content">
 
-            <button type="button"
-                    id="startTimerButton"
-                    class="btn success">
-                ▶ Bắt đầu
-            </button>
+                    <span class="panel-label">
+                        FOCUS SESSION
+                    </span>
 
-            <button type="button"
-                    id="pauseTimerButton"
-                    class="btn warning">
-                ⏸ Tạm dừng
-            </button>
+                    <h3>
+                        Sẵn sàng bắt đầu?
+                    </h3>
 
-            <button type="button"
-                    id="resetTimerButton"
-                    class="btn secondary">
-                ↻ Đặt lại
-            </button>
+                    <p>
+                        Chọn thời gian tập trung,
+                        chọn nhiệm vụ và bắt đầu học.
+                    </p>
 
-        </div>
+                    <button
+                        class="primary-button"
+                        id="studyStartButton"
+                        type="button"
+                    >
+                        ▶ Bắt đầu Study Mode
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-study-grid">
+
+                <button
+                    class="quick-study-card"
+                    data-minutes="25"
+                    type="button"
+                >
+                    <span>🍅</span>
+                    <strong>25 phút</strong>
+                    <small>Pomodoro</small>
+                </button>
+
+
+                <button
+                    class="quick-study-card"
+                    data-minutes="45"
+                    type="button"
+                >
+                    <span>🔥</span>
+                    <strong>45 phút</strong>
+                    <small>Tập trung</small>
+                </button>
+
+
+                <button
+                    class="quick-study-card"
+                    data-minutes="60"
+                    type="button"
+                >
+                    <span>🚀</span>
+                    <strong>60 phút</strong>
+                    <small>Deep Work</small>
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             POMODORO
+        ================================================== -->
+        <section
+            id="section-pomodoro"
+            class="app-section"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <span class="eyebrow">
+                        FOCUS TIMER
+                    </span>
+
+                    <h2>
+                        Pomodoro
+                    </h2>
+
+                    <p>
+                        Chia thời gian học thành những
+                        phiên tập trung ngắn và hiệu quả.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="pomodoro-layout">
+
+                <div class="pomodoro-card">
+
+                    <div class="timer-ring">
+
+                        <div class="timer-inner">
+
+                            <span id="timer">
+                                25:00
+                            </span>
+
+                            <small>
+                                phút tập trung
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="timer-controls">
+
+                        <input
+                            id="minutesInput"
+                            type="number"
+                            min="1"
+                            max="180"
+                            value="25"
+                            aria-label="Số phút"
+                        >
+
+                        <span>
+                            phút
+                        </span>
+
+                    </div>
+
+
+                    <div class="timer-buttons">
+
+                        <button
+                            id="startTimerButton"
+                            class="primary-button"
+                            type="button"
+                        >
+                            ▶ Bắt đầu
+                        </button>
+
+
+                        <button
+                            id="pauseTimerButton"
+                            class="secondary-button"
+                            type="button"
+                        >
+                            ⏸ Tạm dừng
+                        </button>
+
+
+                        <button
+                            id="resetTimerButton"
+                            class="ghost-button"
+                            type="button"
+                        >
+                            ↻ Đặt lại
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="pomodoro-info">
+
+                    <div class="info-card">
+
+                        <span>🍅</span>
+
+                        <div>
+
+                            <strong>
+                                Pomodoro
+                            </strong>
+
+                            <p>
+                                Tập trung trong khoảng
+                                thời gian đã chọn.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-card">
+
+                        <span>📊</span>
+
+                        <div>
+
+                            <strong>
+                                Tự động ghi nhận
+                            </strong>
+
+                            <p>
+                                Thời gian hoàn thành sẽ
+                                được cộng vào báo cáo tuần.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-card">
+
+                        <span>🌱</span>
+
+                        <div>
+
+                            <strong>
+                                Học đều mỗi ngày
+                            </strong>
+
+                            <p>
+                                Theo dõi thời gian học để
+                                xây dựng thói quen.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             STATISTICS
+        ================================================== -->
+        <section
+            id="section-statistics"
+            class="app-section"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <span class="eyebrow">
+                        YOUR DATA
+                    </span>
+
+                    <h2>
+                        Thống kê
+                    </h2>
+
+                    <p>
+                        Xem lại tiến độ học tập của bạn.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="statistics-grid">
+
+                <div class="statistics-big-card">
+
+                    <div class="statistics-circle">
+
+                        <span id="bigProgressPercent2">
+                            0%
+                        </span>
+
+                    </div>
+
+                    <h3>
+                        Tiến độ tổng thể
+                    </h3>
+
+                    <p>
+                        Dựa trên các nhiệm vụ bạn đã hoàn thành.
+                    </p>
+
+                </div>
+
+
+                <div class="statistics-details">
+
+                    <div class="detail-stat">
+
+                        <span>
+                            📚 Tổng nhiệm vụ
+                        </span>
+
+                        <strong id="statsTotal2">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-stat">
+
+                        <span>
+                            ✓ Hoàn thành
+                        </span>
+
+                        <strong id="statsCompleted2">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-stat">
+
+                        <span>
+                            ⏳ Còn lại
+                        </span>
+
+                        <strong id="statsRemaining2">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail-stat">
+
+                        <span>
+                            ⏱ Thời gian tuần này
+                        </span>
+
+                        <strong id="reportStudyTime">
+                            0 phút
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel weekly-report">
+
+                <div class="panel-heading">
+
+                    <div>
+
+                        <span class="panel-label">
+                            WEEKLY REPORT
+                        </span>
+
+                        <h3>
+                            Báo cáo tuần
+                        </h3>
+
+                    </div>
+
+                    <span class="weekly-icon">
+                        📈
+                    </span>
+
+                </div>
+
+
+                <div class="report-grid">
+
+                    <div>
+
+                        <span>
+                            Thời gian học
+                        </span>
+
+                        <strong id="reportStudyTime2">
+                            0 phút
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Đã hoàn thành
+                        </span>
+
+                        <strong id="reportCompleted">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Còn lại
+                        </span>
+
+                        <strong id="reportRemaining">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Tiến độ
+                        </span>
+
+                        <strong id="reportProgress">
+                            0%
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             NOTIFICATIONS
+        ================================================== -->
+        <section
+            id="section-notifications"
+            class="app-section"
+        >
+
+            <div class="section-intro">
+
+                <div>
+
+                    <span class="eyebrow">
+                        NOTIFICATIONS
+                    </span>
+
+                    <h2>
+                        Thông báo
+                    </h2>
+
+                    <p>
+                        StudyManager giúp bạn chú ý
+                        đến những việc quan trọng.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="notificationList"
+                class="notification-list"
+            >
+
+                <div class="empty-state large">
+
+                    <div>
+                        🔔
+                    </div>
+
+                    <strong>
+                        Chưa có thông báo
+                    </strong>
+
+                    <span>
+                        Khi có deadline hoặc báo cáo mới,
+                        thông tin sẽ xuất hiện ở đây.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     ADD TASK MODAL
+========================================================= -->
+<div
+    id="addTaskModal"
+    class="modal-overlay"
+    aria-hidden="true"
+>
+
+    <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="taskModalTitle"
+    >
+
+        <button
+            class="modal-close"
+            id="closeTaskModal"
+            type="button"
+            aria-label="Đóng"
+        >
+            ×
+        </button>
+
+
+        <span class="eyebrow">
+            NEW TASK
+        </span>
+
+
+        <h2 id="taskModalTitle">
+            Thêm nhiệm vụ
+        </h2>
+
+
+        <p>
+            Tạo một nhiệm vụ mới để quản lý việc học.
+        </p>
+
+
+        <form id="taskForm">
+
+            <label>
+                Tên nhiệm vụ
+
+                <input
+                    id="taskName"
+                    name="name"
+                    required
+                    placeholder="Ví dụ: Làm bài tập Toán"
+                    autocomplete="off"
+                >
+            </label>
+
+
+            <label>
+                Môn học
+
+                <input
+                    id="taskSubject"
+                    name="subject"
+                    placeholder="Ví dụ: Toán"
+                    autocomplete="off"
+                >
+            </label>
+
+
+            <label>
+                Deadline
+
+                <input
+                    id="taskDeadline"
+                    name="deadline"
+                    type="datetime-local"
+                    required
+                >
+            </label>
+
+
+            <label>
+                Mức độ ưu tiên
+
+                <select
+                    id="taskPriority"
+                    name="priority"
+                >
+
+                    <option value="normal">
+                        Bình thường
+                    </option>
+
+                    <option value="high">
+                        Ưu tiên cao
+                    </option>
+
+                    <option value="advanced">
+                        Nâng cao
+                    </option>
+
+                </select>
+
+            </label>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancelTaskButton"
+                    class="secondary-button"
+                >
+                    Hủy
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    ＋ Tạo nhiệm vụ
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
 
-</section>
+</div>
 
 
-<!-- TÍNH NĂNG -->
+<!-- =========================================================
+     GUIDE MODAL
+========================================================= -->
+<div
+    id="guideOverlay"
+    class="modal-overlay"
+    aria-hidden="true"
+>
 
-<section class="panel">
+    <div
+        class="guide-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guideTitle"
+    >
 
-    <div class="section-heading">
+        <button
+            id="closeGuideButton"
+            class="modal-close"
+            type="button"
+            aria-label="Đóng hướng dẫn"
+        >
+            ×
+        </button>
 
-        <div>
 
-            <span class="section-label">
-                STUDYMANAGER
+        <div class="guide-header">
+
+            <div class="guide-icon">
+                📚
+            </div>
+
+            <div>
+
+                <span class="eyebrow">
+                    STUDYMANAGER
+                </span>
+
+                <h2 id="guideTitle">
+                    Hướng dẫn sử dụng
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        <div class="guide-steps">
+
+            <div class="guide-step">
+
+                <span>01</span>
+
+                <div>
+
+                    <strong>
+                        Thêm bài tập
+                    </strong>
+
+                    <p>
+                        Vào mục Bài tập → Thêm bài tập.
+                        Nhập môn học, deadline và mức ưu tiên.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="guide-step">
+
+                <span>02</span>
+
+                <div>
+
+                    <strong>
+                        Theo dõi tiến độ
+                    </strong>
+
+                    <p>
+                        Mỗi nhiệm vụ có thanh tiến độ riêng.
+                        Khi hoàn thành, nhiệm vụ được ghi nhận.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="guide-step">
+
+                <span>03</span>
+
+                <div>
+
+                    <strong>
+                        Tập trung học
+                    </strong>
+
+                    <p>
+                        Sử dụng Study Mode hoặc Pomodoro
+                        để quản lý thời gian học.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="guide-step">
+
+                <span>04</span>
+
+                <div>
+
+                    <strong>
+                        Xem thống kê
+                    </strong>
+
+                    <p>
+                        Thống kê giúp bạn biết số nhiệm vụ
+                        đã hoàn thành và thời gian học.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="guide-tip">
+
+            💡
+            <span>
+                <strong>Mẹo:</strong>
+                Hãy nhập deadline chính xác để
+                StudyManager có thể nhắc bạn khi nhiệm vụ
+                sắp đến hạn.
             </span>
 
-            <h2>
-                ✨ Các tính năng
-            </h2>
-
         </div>
 
     </div>
 
-
-    <div class="feature-grid">
-
-        <a href="{{ url_for('assignments') }}"
-           class="feature-card">
-
-            <div>📋</div>
-
-            <h3>
-                Quản lý bài tập
-            </h3>
-
-            <p>
-                Thêm, sửa, xóa và đánh dấu trạng thái
-                hoàn thành của nhiệm vụ.
-            </p>
-
-        </a>
-
-
-        <a href="#statistics"
-           class="feature-card">
-
-            <div>📊</div>
-
-            <h3>
-                Theo dõi tiến độ
-            </h3>
-
-            <p>
-                Xem nhanh số lượng nhiệm vụ và
-                mức độ hoàn thành.
-            </p>
-
-        </a>
-
-
-        <a href="#pomodoro"
-           class="feature-card">
-
-            <div>🍅</div>
-
-            <h3>
-                Pomodoro
-            </h3>
-
-            <p>
-                Tập trung học trong khoảng thời gian
-                do bạn lựa chọn.
-            </p>
-
-        </a>
-
-
-        <a href="#add-task"
-           class="feature-card">
-
-            <div>⏰</div>
-
-            <h3>
-                Deadline
-            </h3>
-
-            <p>
-                Nhận nhắc nhở khi nhiệm vụ sắp
-                đến hạn.
-            </p>
-
-        </a>
-
-    </div>
-
-</section>
-```
-
-</main>
-
-<!-- DEADLINE REMINDER -->
-
-<div id="deadlineReminder"
-     class="deadline-reminder"
-     style="display: none;">
-
-```
-<strong>
-    ⏰ Nhắc nhở
-</strong>
-
-<p id="deadlineReminderText">
-    Có bài tập sắp đến hạn.
-</p>
-
-<button type="button"
-        id="closeDeadlineButton"
-        class="btn secondary">
-    Đã xem
-</button>
-```
-
 </div>
 
-<!-- HƯỚNG DẪN -->
 
-<div id="guideOverlay"
-     class="guide-overlay">
-
-```
-<div class="guide-modal">
-
-    <button type="button"
-            id="guideCloseButton"
-            class="guide-close">
-        ×
-    </button>
-
-    <h2>
-        📖 Hướng dẫn sử dụng StudyManager
-    </h2>
+<!-- =========================================================
+     SERVER USER ID
+========================================================= -->
+<script>
+    const SERVER_USER_ID = "{{ user_id }}";
+</script>
 
 
-    <div class="guide-step">
-
-        <strong>
-            1. Thêm bài tập
-        </strong>
-
-        <p>
-            Nhập tên bài tập, môn học và hạn hoàn thành,
-            sau đó chọn “Thêm nhiệm vụ”.
-        </p>
-
-    </div>
-
-
-    <div class="guide-step">
-
-        <strong>
-            2. Quản lý nhiệm vụ
-        </strong>
-
-        <p>
-            Bạn có thể đánh dấu bài tập đã hoàn thành,
-            bỏ hoàn thành, chỉnh sửa hoặc xóa nhiệm vụ.
-        </p>
-
-    </div>
-
-
-    <div class="guide-step">
-
-        <strong>
-            3. Theo dõi tiến độ
-        </strong>
-
-        <p>
-            Khu vực thống kê cho biết tổng số nhiệm vụ,
-            số nhiệm vụ đã hoàn thành và tiến độ học tập.
-        </p>
-
-    </div>
-
-
-    <div class="guide-step">
-
-        <strong>
-            4. Sử dụng Pomodoro
-        </strong>
-
-        <p>
-            Nhập số phút muốn học, chọn “Đặt thời gian”
-            rồi nhấn “Bắt đầu”.
-        </p>
-
-    </div>
-
-
-    <div class="guide-step">
-
-        <strong>
-            5. Deadline
-        </strong>
-
-        <p>
-            StudyManager có thể hiển thị nhắc nhở
-            khi nhiệm vụ sắp đến hạn.
-        </p>
-
-    </div>
-
-</div>
-```
-
-</div>
-
-<!-- QUAN TRỌNG: ĐỔI VERSION ĐỂ TRÌNH DUYỆT KHÔNG DÙNG JS CŨ -->
-
-<script src="{{ url_for('static', filename='script.js') }}?v=3"></script>
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+<script
+    src="{{ url_for('static', filename='script.js') }}?v=12"
+></script>
 
 </body>
 </html>
